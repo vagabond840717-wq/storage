@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ea">
+<title>HANA STAY 비품 창고</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1ea; --card:#ffffff; --ink:#1b1917; --ink2:#4a453d;
+  --muted:#655e51; --faint:#8a8275; --line:#e4dfd4; --line2:#ddd6c8;
+  --soft:#faf8f3; --edit:#fdfbf6;
+  --red:#b03a2e; --redbg:#fae8e5;
+  --amber:#8a5a12; --amberbg:#f7eeda;
+  --green:#3d6b4b; --greenbg:#e8f0e9;
+}
+*{-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'IBM Plex Sans KR',system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+#app{max-width:480px;margin:0 auto;padding:0 20px env(safe-area-inset-bottom);box-sizing:border-box}
+button{font-family:inherit;color:inherit}
+input,textarea{font-family:inherit;color:var(--ink)}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.hidden{display:none !important}
+
+/* 헤더 */
+.hd{display:flex;align-items:flex-start;gap:10px;padding:22px 0 10px}
+.hd .brand{font-size:10px;letter-spacing:.2em;font-weight:600;color:var(--muted)}
+.hd h1{margin:5px 0 0;font-family:'Gowun Batang',serif;font-size:27px;font-weight:700;letter-spacing:-.01em}
+.hd .when{margin-top:5px;font-size:12px;color:var(--muted)}
+.iconbtn{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:var(--card);border:1px solid #e0dacd;border-radius:12px;cursor:pointer}
+.iconbtn svg{width:19px;height:19px}
+.iconbtn.spin svg{animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* 요약 */
+.sum{margin:4px 0 14px;padding:14px 16px;background:var(--ink);color:var(--bg);border-radius:14px}
+.sum .top{display:flex;align-items:baseline;gap:7px}
+.sum .big{font-size:27px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.sum .lbl{font-size:13px;opacity:.8}
+.sum .ok{font-size:12px;opacity:.6;margin-left:auto}
+.sum .names{margin-top:9px;font-size:12.5px;line-height:1.55;opacity:.9}
+.hello{margin:4px 0 14px;padding:15px 16px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+.hello b{display:block;font-size:14.5px;font-weight:600}
+.hello span{display:block;margin-top:6px;font-size:12px;line-height:1.6;color:var(--muted)}
+
+.sec{margin:26px 0 10px;display:flex;align-items:baseline;gap:8px}
+.sec b{font-size:10px;letter-spacing:.16em;font-weight:600;color:var(--muted)}
+.sec i{font-style:normal;font-size:11px;color:var(--faint)}
+.sec:first-child{margin-top:0}
+
+/* 품목 */
+.card{margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:flex;align-items:center;gap:8px;min-height:66px;box-sizing:border-box;padding:9px 10px 9px 6px}
+.row .info{flex-grow:1;min-width:0;min-height:48px;padding:0 6px 0 8px;background:none;border:0;text-align:left;cursor:pointer}
+.row .nm{display:block;font-size:15.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{display:block;margin-top:2px;font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stp{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:var(--soft);border:1px solid var(--line2);border-radius:11px;font-size:20px;line-height:1;cursor:pointer}
+.num{width:44px;height:44px;flex-shrink:0;background:none;border:0;font-size:18px;font-weight:600;
+  font-variant-numeric:tabular-nums;cursor:pointer}
+.panel{padding:13px 14px;background:var(--edit)}
+.panel .cap{display:block;font-size:10px;letter-spacing:.16em;font-weight:600;color:var(--amber);margin-bottom:8px}
+.fld{width:100%;box-sizing:border-box;min-height:48px;padding:0 13px;background:var(--card);
+  border:1px solid var(--line2);border-radius:11px;font-size:15px}
+.fld.mid{text-align:center;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;min-height:52px}
+.units{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.unit{min-width:46px;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);
+  background:var(--card);color:var(--ink2);font-size:13.5px;font-weight:500;cursor:pointer}
+.unit[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.minrow{display:flex;align-items:center;gap:8px;margin-top:9px}
+.minrow label{flex-shrink:0;font-size:12.5px;color:var(--ink2)}
+.minrow .fld{flex-shrink:0;width:66px;padding:0 10px;text-align:center;font-variant-numeric:tabular-nums}
+.pair{display:flex;gap:8px;margin-top:10px}
+.pair button{flex:1 1 0;min-height:46px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer}
+.ghost{background:var(--bg);border:1px solid var(--line2);color:var(--ink2)}
+.solid{background:var(--ink);border:0;color:var(--bg)}
+.danger{margin-top:6px;width:100%;min-height:44px;background:none;border:0;font-size:12.5px;
+  font-weight:500;color:var(--red);cursor:pointer}
+
+/* 추가 */
+.addbox{margin-top:16px}
+.addbox>label{display:block;margin:0 2px 9px;font-size:10px;letter-spacing:.16em;font-weight:600;color:var(--muted)}
+#newName{width:100%;box-sizing:border-box;min-height:50px;padding:0 14px;background:var(--card);
+  border:1px dashed #cdc5b5;border-radius:13px;font-size:14.5px}
+.addfoot{display:flex;align-items:center;gap:8px;margin-top:9px}
+.addfoot label{flex-shrink:0;font-size:12.5px;color:var(--ink2)}
+#newMin{flex-shrink:0;width:66px;box-sizing:border-box;min-height:50px;padding:0 10px;text-align:center;
+  background:var(--card);border:1px solid #e0dacd;border-radius:13px;font-size:15px;font-variant-numeric:tabular-nums}
+#addBtn{flex-shrink:0;margin-left:auto;width:72px;min-height:50px;border:0;border-radius:13px;
+  font-size:14.5px;font-weight:600;background:var(--ink);color:var(--bg);cursor:pointer}
+#addBtn:disabled{background:#e6e1d6;color:#9a9286;cursor:default}
+
+/* 호실 */
+.room{display:flex;align-items:center;gap:11px;min-height:64px;box-sizing:border-box;padding:11px 14px;
+  margin-bottom:7px;background:var(--card);border:1px solid var(--line);border-radius:13px;
+  width:100%;text-align:left;cursor:pointer}
+.room .bar{flex-shrink:0;width:4px;height:32px;border-radius:2px}
+.room .no{flex-shrink:0;width:40px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.room .mid{flex-grow:1;min-width:0}
+.room .pv{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room .mt{display:block;margin-top:3px;font-size:11px;color:var(--faint)}
+.room svg{flex-shrink:0;width:17px;height:17px}
+.empty{padding:28px 16px;text-align:center;border:1px dashed #cdc5b5;border-radius:14px;font-size:13px;color:var(--muted)}
+
+/* 메모 화면 */
+.back{display:inline-flex;align-items:center;gap:5px;min-height:44px;background:none;border:0;
+  font-size:12.5px;font-weight:500;color:var(--ink2);cursor:pointer}
+.back svg{width:17px;height:17px}
+.chips{display:flex;gap:7px;overflow-x:auto;padding:10px 0 14px;margin:0 -20px;padding-left:20px;padding-right:20px}
+.chip{position:relative;flex-shrink:0;width:54px;height:52px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:5px;border:1px solid #e0dacd;border-radius:13px;
+  background:var(--card);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .bar{width:17px;height:3px;border-radius:2px}
+.chip .dot{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.memobox{padding:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:18px}
+.memobox label{display:block;font-size:10px;letter-spacing:.16em;font-weight:600;color:var(--muted);margin-bottom:8px}
+textarea{width:100%;box-sizing:border-box;resize:none;padding:11px 12px;background:var(--soft);
+  border:1px solid #e0dacd;border-radius:10px;font-size:14px;line-height:1.6}
+.panel textarea{background:var(--card);border-color:var(--line2)}
+.wide{margin-top:10px;width:100%;min-height:48px;border:0;border-radius:11px;font-size:14.5px;
+  font-weight:600;background:var(--ink);color:var(--bg);cursor:pointer}
+.wide:disabled{background:#e6e1d6;color:#9a9286;cursor:default}
+.memo{margin-bottom:9px;background:var(--card);border:1px solid var(--line);border-left:3px solid #d9cfb8;
+  border-radius:14px;overflow:hidden}
+.memo .open{display:block;width:100%;box-sizing:border-box;padding:14px 15px;background:none;border:0;
+  text-align:left;cursor:pointer}
+.memo .tx{display:block;font-size:14.5px;line-height:1.68;white-space:pre-line}
+.memo .ft{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:var(--muted)}
+.memo .ft em{font-style:normal;margin-left:auto;font-weight:600;color:var(--amber)}
+
+/* 토스트 */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);
+  max-width:calc(100% - 40px);padding:13px 18px;background:var(--ink);color:var(--bg);
+  border-radius:12px;font-size:13px;line-height:1.5;opacity:0;pointer-events:none;
+  transition:opacity .22s,transform .22s;z-index:50}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ───────── 화면 1 · 비품 창고 ───────── -->
+  <section id="scMain">
+    <div class="hd">
+      <div style="flex-grow:1;min-width:0">
+        <div class="brand">HANA STAY</div>
+        <h1>비품 창고</h1>
+        <div class="when" id="when"></div>
+      </div>
+      <button type="button" class="iconbtn" id="reload" aria-label="다시 불러오기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 3.5v5h-5"/></svg>
+      </button>
+    </div>
+
+    <div id="summary"></div>
+    <div id="itemArea"></div>
+
+    <div class="addbox">
+      <label for="newName">품목 추가</label>
+      <input id="newName" type="text" placeholder="예) 주방세제" autocomplete="off">
+      <div class="units" id="newUnits"></div>
+      <div class="addfoot">
+        <label for="newMin">이 개수 아래면 알림</label>
+        <input id="newMin" type="number" inputmode="numeric" value="9" min="1">
+        <button type="button" id="addBtn" disabled>추가</button>
+      </div>
+    </div>
+
+    <div class="sec"><b>호실별 메모 · 특이사항</b><i>눌러서 자세히</i></div>
+    <div id="roomArea"></div>
+  </section>
+
+  <!-- ───────── 화면 2 · 호실별 메모 ───────── -->
+  <section id="scMemo" class="hidden">
+    <div class="hd" style="display:block;padding-bottom:0">
+      <button type="button" class="back" id="goBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        <span>비품 창고</span>
+      </button>
+      <h1 style="margin:0;font-family:'Gowun Batang',serif;font-size:28px;font-weight:700;letter-spacing:-.01em">호실별 메모</h1>
+    </div>
+
+    <div class="chips" id="chips"></div>
+
+    <div class="memobox">
+      <label for="newMemo" id="newMemoLbl">새 메모</label>
+      <textarea id="newMemo" rows="3" placeholder="예) 창문 잠금장치가 뻑뻑함 — 손님께 미리 안내"></textarea>
+      <button type="button" class="wide" id="memoAdd" disabled>메모 추가</button>
+    </div>
+
+    <div id="memoArea"></div>
+  </section>
+
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+/* ═══════════ 상수 ═══════════ */
+var WORKER_URL  = 'https://parking.vagabond1984.workers.dev';   // 범용 KV 창고 (주차앱과 공용, 키로 구분)
+var KV_KEY      = 'storage_data';
+var LS_KEY      = 'hana_storage';
+var ROOMS_URL   = 'https://ical-proxy.vagabond1984.workers.dev/rooms';  // ⚠ 읽기 전용. POST 하지 말 것
+var LS_ROOMS    = 'hana_storage_rooms';
+var DEBOUNCE_MS = 2500;      // KV 는 같은 키에 1초 1회 제한. 줄이지 말 것
+var UNITS       = ['개','장','롤','통','병','켤레'];
+
+/* ═══════════ 상태 ═══════════ */
+var store   = { items: [], memos: {}, updated: '' };  // 화면에 그려지는 현재 내용
+var rooms   = [];
+var pending = emptyPending();                          // 아직 서버에 못 보낸 내 변경
+var lastGood = null;                                   // 저장 실패 시 되돌릴 기준
+var saveTimer = null;
+var curRoom = '';
+var ui = { itemEdit:'', itemNum:'', memoEdit:'', newUnit:'개' };
+
+function emptyPending(){
+  return { deltas:{}, absolutes:{}, edits:{}, addItems:[], removeItemIds:[], memoOps:[] };
+}
+function pendingEmpty(p){
+  return Object.keys(p.deltas).length === 0 && Object.keys(p.absolutes).length === 0 &&
+         Object.keys(p.edits).length === 0 && p.addItems.length === 0 &&
+         p.removeItemIds.length === 0 && p.memoOps.length === 0;
+}
+
+/* ═══════════ 작은 도구 ═══════════ */
+function $(id){ return document.getElementById(id); }
+function has(o,k){ return Object.prototype.hasOwnProperty.call(o,k); }
+function esc(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function clone(v){ return JSON.parse(JSON.stringify(v)); }
+function newId(p){ return p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,5); }
+function num(v, dflt){ var n = parseInt(v,10); return isNaN(n) ? dflt : n; }
+
+// ⚠ toISOString 금지 (#30) — UTC 라서 새벽에 하루 밀린다. 로컬 getter 만 쓴다
+function pad2(n){ return (n < 10 ? '0' : '') + n; }
+function stamp(){
+  var d = new Date();
+  return d.getFullYear() + '.' + pad2(d.getMonth()+1) + '.' + pad2(d.getDate()) +
+         ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+function today(){
+  var d = new Date(), w = ['일','월','화','수','목','금','토'][d.getDay()];
+  return (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + w;
+}
+function shortName(n){ var m = String(n).match(/^\d+/); return m ? m[0] : String(n); }
+
+var toastTimer = null;
+function showToast(msg){
+  var t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('on'); }, 3200);
+}
+
+/* ═══════════ 데이터 — 읽기 ═══════════ */
+function normalize(v){
+  var s = (v && typeof v === 'object') ? v : {};
+  var rawItems = Array.isArray(s.items) ? s.items : [];
+  var items = [];
+  rawItems.forEach(function(x){
+    if (!x || typeof x !== 'object') return;
+    items.push({
+      id:   x.id || newId('s'),
+      name: String(x.name || ''),
+      unit: String(x.unit || '개'),
+      n:    Math.max(0, num(x.n, 0)),
+      min:  Math.max(0, num(x.min, 0))
+    });
+  });
+  var memos = {};
+  var rawMemos = (s.memos && typeof s.memos === 'object') ? s.memos : {};
+  Object.keys(rawMemos).forEach(function(rn){
+    if (!Array.isArray(rawMemos[rn])) return;
+    var arr = [];
+    rawMemos[rn].forEach(function(m){
+      if (!m || typeof m !== 'object') return;
+      arr.push({ id: m.id || newId('m'), text: String(m.text || ''), date: String(m.date || '') });
+    });
+    if (arr.length) memos[rn] = arr;
+  });
+  return { items: items, memos: memos, updated: String(s.updated || '') };
+}
+
+function readServer(){
+  return fetch(WORKER_URL + '/kv?key=' + encodeURIComponent(KV_KEY), { cache:'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .then(function(j){ return normalize(j && j.value ? JSON.parse(j.value) : null); });
+}
+
+function loadStore(){
+  return readServer().then(function(s){
+    store = s;
+    lastGood = clone(s);
+    try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch(e){}
+  })['catch'](function(){
+    // ⚠ "못 읽었다"를 "비어 있다"로 해석하지 않는다 (#22·#26·#27)
+    var local = null;
+    try { var raw = localStorage.getItem(LS_KEY); if (raw) local = JSON.parse(raw); } catch(e){}
+    store = normalize(local);
+    lastGood = null;   // 서버본을 모르므로 되돌릴 기준이 없다
+    showToast('서버에서 불러오지 못했습니다. 이 기기에 저장된 내용만 보여드립니다');
+  });
+}
+
+/* ═══════════ 데이터 — 합치기 저장 ★핵심 ═══════════ */
+/*
+   개수는 절대값이 아니라 "내가 만든 변화량(delta)"으로 얹는다.
+   사장님이 24→26 하는 사이 다른 사람이 24→20 을 만들면,
+   26 으로 덮어쓰면 상대의 −4 가 사라진다. +2 로 얹으면 20+2=22 가 되어 둘 다 산다.
+   숫자 직접 입력만 절대값 — "세어보니 30개"는 덮어쓰는 게 맞다.
+*/
+function mergeOnto(server, p){
+  var out = { items: [], memos: {}, updated: stamp() };
+
+  server.items.forEach(function(it){
+    if (p.removeItemIds.indexOf(it.id) >= 0) return;
+    var c = { id: it.id, name: it.name, unit: it.unit, n: it.n, min: it.min };
+    if (has(p.edits, it.id)) {
+      var e = p.edits[it.id];
+      c.name = e.name; c.unit = e.unit; c.min = e.min;
+    }
+    if (has(p.absolutes, it.id))      c.n = Math.max(0, p.absolutes[it.id]);
+    else if (has(p.deltas, it.id))    c.n = Math.max(0, it.n + p.deltas[it.id]);
+    out.items.push(c);
+  });
+
+  // 내가 새로 넣은 품목 — 서버에 같은 id 가 없을 때만
+  var have = {};
+  out.items.forEach(function(x){ have[x.id] = 1; });
+  p.addItems.forEach(function(a){ if (!have[a.id]) out.items.push(clone(a)); });
+  // 서버에 없는 id 의 delta 는 무시된다 — 상대가 지운 품목을 되살리지 않는다
+
+  Object.keys(server.memos).forEach(function(rn){
+    out.memos[rn] = server.memos[rn].map(function(m){
+      return { id:m.id, text:m.text, date:m.date };
+    });
+  });
+  p.memoOps.forEach(function(op){
+    if (!out.memos[op.room]) out.memos[op.room] = [];
+    var arr = out.memos[op.room], i = -1, k;
+    for (k = 0; k < arr.length; k++) { if (arr[k].id === op.memo.id) { i = k; break; } }
+    if (op.type === 'add')      { if (i < 0) arr.unshift(clone(op.memo)); }
+    else if (op.type === 'replace') { if (i >= 0) arr[i] = clone(op.memo); }
+    else if (op.type === 'remove')  { if (i >= 0) arr.splice(i,1); }
+  });
+  Object.keys(out.memos).forEach(function(rn){ if (!out.memos[rn].length) delete out.memos[rn]; });
+
+  return out;
+}
+
+function sameContent(a, b){
+  var x = { items:a.items, memos:a.memos };
+  var y = { items:b.items, memos:b.memos };
+  return JSON.stringify(x) === JSON.stringify(y);
+}
+
+function revert(msg){
+  showToast(msg);
+  pending = emptyPending();
+  if (lastGood) store = clone(lastGood);
+  ui.itemEdit = ''; ui.itemNum = ''; ui.memoEdit = '';
+  render();
+}
+
+var saving = false, saveAgain = false;
+function saveStoreMerged(){
+  if (pendingEmpty(pending)) return Promise.resolve();
+  // 이미 저장 중이면 건너뛰지 말고 "끝나면 한 번 더" 표시만 해둔다.
+  // 그냥 넘어가면 그 사이 누른 변경이 조용히 사라진다 (앱을 닫는 순간이면 영영)
+  if (saving) { saveAgain = true; return Promise.resolve(); }
+  saving = true;
+  var mine = pending;
+  pending = emptyPending();
+
+  return readServer().then(function(server){
+    var merged = mergeOnto(server, mine);
+    if (sameContent(merged, server)) {          // 내용이 그대로면 쓰지 않는다 (KV 한도)
+      store = server; lastGood = clone(server); render(); return null;
+    }
+    var body = JSON.stringify({ key: KV_KEY, value: JSON.stringify(merged) });
+    return fetch(WORKER_URL + '/kv', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body
+    }).then(function(r){
+      if (!r.ok) throw new Error('http ' + r.status);
+      store = merged;
+      lastGood = clone(merged);
+      // localStorage 는 서버 저장에 성공한 뒤에만 — 낡은 로컬본이 폴백으로 되살아나지 않게
+      try { localStorage.setItem(LS_KEY, JSON.stringify(merged)); } catch(e){}
+      render();
+      return null;
+    });
+  })['catch'](function(){
+    // 서버를 못 읽거나 못 쓰면 저장하지 않는다. 화면의 낙관적 변경을 되돌린다
+    revert('저장하지 못했습니다. 연결을 확인하고 다시 해주세요');
+  }).then(function(){
+    saving = false;
+    if (saveAgain) { saveAgain = false; return saveStoreMerged(); }
+  });
+}
+
+function queueSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveStoreMerged, DEBOUNCE_MS);
+}
+function flushSave(){
+  clearTimeout(saveTimer);
+  saveStoreMerged();
+}
+
+/* ═══════════ 데이터 — 바꾸기 (화면 먼저, 서버는 나중에) ═══════════ */
+function findItem(id){
+  for (var i = 0; i < store.items.length; i++) if (store.items[i].id === id) return store.items[i];
+  return null;
+}
+function findAdd(id){
+  for (var i = 0; i < pending.addItems.length; i++) if (pending.addItems[i].id === id) return pending.addItems[i];
+  return null;
+}
+
+function bump(id, d){
+  var it = findItem(id); if (!it) return;
+  it.n = Math.max(0, it.n + d);
+  var a = findAdd(id);
+  if (a) a.n = it.n;                                   // 아직 안 보낸 새 품목이면 그 안에 반영
+  else if (has(pending.absolutes, id)) pending.absolutes[id] = Math.max(0, pending.absolutes[id] + d);
+  else pending.deltas[id] = (pending.deltas[id] || 0) + d;
+  touchRow(id);
+  queueSave();
+}
+
+function setExact(id, n){
+  var it = findItem(id); if (!it) return;
+  n = Math.max(0, n);
+  it.n = n;
+  var a = findAdd(id);
+  if (a) a.n = n;
+  else { delete pending.deltas[id]; pending.absolutes[id] = n; }   // 절대값이 이긴다
+  queueSave();
+}
+
+function addItem(name, unit, min){
+  var it = { id:newId('s'), name:name, unit:unit, n:0, min:min };
+  store.items.push(it);
+  pending.addItems.push(clone(it));
+  queueSave();
+}
+
+function editItem(id, name, unit, min){
+  var it = findItem(id); if (!it) return;
+  it.name = name; it.unit = unit; it.min = min;
+  var a = findAdd(id);
+  if (a) { a.name = name; a.unit = unit; a.min = min; }
+  else pending.edits[id] = { name:name, unit:unit, min:min };
+  queueSave();
+}
+
+function removeItem(id){
+  var i = -1, k;
+  for (k = 0; k < store.items.length; k++) if (store.items[k].id === id) { i = k; break; }
+  if (i < 0) return;
+  store.items.splice(i,1);
+  var ai = -1;
+  for (k = 0; k < pending.addItems.length; k++) if (pending.addItems[k].id === id) { ai = k; break; }
+  if (ai >= 0) pending.addItems.splice(ai,1);          // 아직 안 보낸 것이면 그냥 취소
+  else if (pending.removeItemIds.indexOf(id) < 0) pending.removeItemIds.push(id);
+  delete pending.deltas[id]; delete pending.absolutes[id]; delete pending.edits[id];
+  queueSave();
+}
+
+function addMemo(room, text){
+  var m = { id:newId('m'), text:text, date:stamp() };
+  if (!store.memos[room]) store.memos[room] = [];
+  store.memos[room].unshift(m);
+  pending.memoOps.push({ type:'add', room:room, memo:clone(m) });
+  queueSave();
+}
+
+function saveMemo(room, id, text){
+  var arr = store.memos[room] || [], m = null, i;
+  for (i = 0; i < arr.length; i++) if (arr[i].id === id) { m = arr[i]; break; }
+  if (!m) return;
+  m.text = text; m.date = stamp() + ' 수정';
+  var op = null;
+  for (i = 0; i < pending.memoOps.length; i++) {
+    var o = pending.memoOps[i];
+    if (o.memo.id === id && (o.type === 'add' || o.type === 'replace')) { op = o; break; }
+  }
+  if (op) op.memo = clone(m);
+  else pending.memoOps.push({ type:'replace', room:room, memo:clone(m) });
+  queueSave();
+}
+
+function removeMemo(room, id){
+  var arr = store.memos[room] || [], i = -1, k;
+  for (k = 0; k < arr.length; k++) if (arr[k].id === id) { i = k; break; }
+  if (i < 0) return;
+  arr.splice(i,1);
+  if (!arr.length) delete store.memos[room];
+  var wasNew = false;
+  pending.memoOps = pending.memoOps.filter(function(o){
+    if (o.memo.id === id) { if (o.type === 'add') wasNew = true; return false; }
+    return true;
+  });
+  if (!wasNew) pending.memoOps.push({ type:'remove', room:room, memo:{ id:id } });
+  queueSave();
+}
+
+/* ═══════════ 호실 목록 (읽기 전용) ═══════════ */
+function loadRooms(){
+  return fetch(ROOMS_URL)                       // ⚠ GET 만. 이 주소로 POST 하는 코드를 만들지 말 것
+    .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .then(function(arr){
+      if (!Array.isArray(arr) || !arr.length) throw new Error('empty');
+      var out = [];
+      arr.forEach(function(x){
+        if (x && x.name) out.push({ name:String(x.name), color:String(x.color || '#9a9286') });
+      });
+      if (!out.length) throw new Error('empty');
+      rooms = out;
+      try { localStorage.setItem(LS_ROOMS, JSON.stringify(rooms)); } catch(e){}
+    })['catch'](function(){
+      // ⚠ 상수 목록으로 지어내지 않는다 — 실제 호실과 달라 없는 방을 보여주게 된다
+      try { var raw = localStorage.getItem(LS_ROOMS); rooms = raw ? JSON.parse(raw) : []; }
+      catch(e){ rooms = []; }
+    }).then(function(){
+      if (!curRoom && rooms.length) curRoom = rooms[0].name;
+    });
+}
+
+/* ═══════════ 화면 그리기 ═══════════ */
+function statusOf(it){
+  if (it.n === 0)      return { color:'var(--red)',   sub: it.unit + ' · 다 떨어짐',            subColor:'var(--red)',   bold:'500' };
+  if (it.n <= it.min)  return { color:'var(--amber)', sub: it.unit + ' · 기준 ' + it.min + ' 아래', subColor:'var(--amber)', bold:'500' };
+  return                      { color:'var(--ink)',   sub: it.unit + ' · 기준 ' + it.min,        subColor:'var(--faint)', bold:'400' };
+}
+
+function unitChips(sel, act){
+  return UNITS.map(function(u){
+    return '<button type="button" class="unit" data-act="' + act + '" data-u="' + esc(u) + '" ' +
+           'aria-pressed="' + (u === sel ? 'true' : 'false') + '">' + esc(u) + '</button>';
+  }).join('');
+}
+
+function renderSummary(){
+  var gone = [], low = [], ok = 0;
+  store.items.forEach(function(b){
+    if (b.n === 0) gone.push(b.name);
+    else if (b.n <= b.min) low.push(b.name);
+    else ok++;
+  });
+  var need = gone.concat(low);
+  var el = $('summary');
+  if (!store.items.length) {
+    el.innerHTML = '<div class="hello"><b>창고에 두는 물건을 하나씩 넣어주세요</b>' +
+      '<span>이름과 단위, 그리고 이 개수 아래로 떨어지면 알려줄 기준을 정하면 됩니다.</span></div>';
+    return;
+  }
+  el.innerHTML =
+    '<div class="sum"><div class="top">' +
+      '<span class="big">' + need.length + '</span>' +
+      '<span class="lbl">가지 사야 함</span>' +
+      '<span class="ok">넉넉함 ' + ok + '</span>' +
+    '</div><div class="names">' + (need.length ? esc(need.join(' · ')) : '다 넉넉합니다') + '</div></div>';
+}
+
+function renderItems(){
+  var el = $('itemArea');
+  if (!store.items.length) { el.innerHTML = ''; return; }
+  var html = '<div class="sec"><b>창고에 남은 개수</b></div><div id="itemList">';
+  store.items.forEach(function(it){
+    var st = statusOf(it);
+    html += '<div class="card" data-id="' + esc(it.id) + '">';
+    if (ui.itemNum === it.id) {
+      html +=
+        '<div class="panel">' +
+          '<label class="cap" for="numBox">' + esc(it.name) + ' — 세어본 개수</label>' +
+          '<input id="numBox" class="fld mid" type="number" inputmode="numeric" min="0" value="' + it.n + '">' +
+          '<div class="pair">' +
+            '<button type="button" class="ghost" data-act="numCancel">취소</button>' +
+            '<button type="button" class="solid" data-act="numSave">이 개수로</button>' +
+          '</div>' +
+        '</div>';
+    } else if (ui.itemEdit === it.id) {
+      html +=
+        '<div class="panel">' +
+          '<label class="cap" for="edName">품목 고치기</label>' +
+          '<input id="edName" class="fld" type="text" value="' + esc(it.name) + '">' +
+          '<div class="units" id="edUnits">' + unitChips(it.unit, 'edUnit') + '</div>' +
+          '<div class="minrow"><label for="edMin">이 개수 아래면 알림</label>' +
+            '<input id="edMin" class="fld" type="number" inputmode="numeric" min="1" value="' + it.min + '"></div>' +
+          '<div class="pair">' +
+            '<button type="button" class="ghost" data-act="edCancel">취소</button>' +
+            '<button type="button" class="solid" data-act="edSave">저장</button>' +
+          '</div>' +
+          '<button type="button" class="danger" data-act="edRemove">이 품목을 목록에서 빼기</button>' +
+        '</div>';
+    } else {
+      html +=
+        '<div class="row">' +
+          '<button type="button" class="info" data-act="openEdit">' +
+            '<span class="nm">' + esc(it.name) + '</span>' +
+            '<span class="sub" style="color:' + st.subColor + ';font-weight:' + st.bold + '">' + esc(st.sub) + '</span>' +
+          '</button>' +
+          '<button type="button" class="stp" data-act="dec" aria-label="' + esc(it.name) + ' 하나 줄이기">−</button>' +
+          '<button type="button" class="num" data-act="openNum" style="color:' + st.color + '" ' +
+                  'aria-label="' + esc(it.name) + ' 개수 직접 입력">' + it.n + '</button>' +
+          '<button type="button" class="stp" data-act="inc" aria-label="' + esc(it.name) + ' 하나 늘리기">＋</button>' +
+        '</div>';
+    }
+    html += '</div>';
+  });
+  el.innerHTML = html + '</div>';
+}
+
+// 스테퍼는 그 줄만 고친다 — 다른 줄에서 입력 중이던 내용이 날아가지 않게
+function touchRow(id){
+  var it = findItem(id);
+  var card = document.querySelector('#itemList [data-id="' + id + '"]');
+  if (!it || !card) { render(); return; }
+  var n = card.querySelector('.num'), s = card.querySelector('.sub');
+  if (!n || !s) { render(); return; }
+  var st = statusOf(it);
+  n.textContent = it.n;
+  n.style.color = st.color;
+  s.textContent = st.sub;
+  s.style.color = st.subColor;
+  s.style.fontWeight = st.bold;
+  renderSummary();
+}
+
+function renderRooms(){
+  var el = $('roomArea');
+  if (!rooms.length) {
+    el.innerHTML = '<div class="empty">호실 목록을 불러오지 못했습니다<br>위 ↻ 를 눌러 다시 시도해주세요</div>';
+    return;
+  }
+  el.innerHTML = rooms.map(function(r){
+    var mine = store.memos[r.name] || [];
+    var pv  = mine.length ? esc(mine[0].text) : '특이사항 없음';
+    var mt  = mine.length ? ('메모 ' + mine.length + '개 · ' + esc(mine[0].date)) : '눌러서 메모 남기기';
+    var col = mine.length ? 'var(--ink)' : '#9a9286';
+    return '<button type="button" class="room" data-act="openRoom" data-room="' + esc(r.name) + '">' +
+      '<span class="bar" style="background:' + esc(r.color) + '"></span>' +
+      '<span class="no">' + esc(shortName(r.name)) + '</span>' +
+      '<span class="mid"><span class="pv" style="color:' + col + '">' + pv + '</span>' +
+      '<span class="mt">' + mt + '</span></span>' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#9a9286" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>' +
+      '</button>';
+  }).join('');
+}
+
+function renderChips(){
+  var box = $('chips');
+  box.innerHTML = rooms.map(function(r){
+    var mine = store.memos[r.name] || [];
+    return '<button type="button" class="chip" data-act="pickRoom" data-room="' + esc(r.name) + '" ' +
+      'aria-pressed="' + (r.name === curRoom ? 'true' : 'false') + '" aria-label="' + esc(r.name) + '">' +
+      (mine.length ? '<span class="dot"></span>' : '') +
+      '<span>' + esc(shortName(r.name)) + '</span>' +
+      '<span class="bar" style="background:' + esc(r.color) + '"></span></button>';
+  }).join('');
+  // 고른 호실이 화면 밖에 있으면 안 보인다 — 가운데로 끌어온다
+  var on = box.querySelector('[aria-pressed=true]');
+  if (on) {
+    var cr = box.getBoundingClientRect(), br = on.getBoundingClientRect();
+    box.scrollLeft += (br.left - cr.left) - (cr.width - br.width) / 2;
+  }
+}
+
+function renderMemos(){
+  $('newMemoLbl').textContent = shortName(curRoom) + ' 새 메모';
+  var arr = store.memos[curRoom] || [];
+  var el = $('memoArea');
+  if (!arr.length) {
+    el.innerHTML = '<div class="empty">' + esc(shortName(curRoom)) + ' 에 남긴 메모가 아직 없습니다</div>';
+    return;
+  }
+  el.innerHTML = arr.map(function(m){
+    if (ui.memoEdit === m.id) {
+      return '<div class="memo" data-mid="' + esc(m.id) + '"><div class="panel">' +
+        '<label class="cap" for="mEdit">메모 수정 중</label>' +
+        '<textarea id="mEdit" rows="4">' + esc(m.text) + '</textarea>' +
+        '<div class="pair">' +
+          '<button type="button" class="ghost" data-act="mCancel">취소</button>' +
+          '<button type="button" class="solid" data-act="mSave">저장</button>' +
+        '</div>' +
+        '<button type="button" class="danger" data-act="mRemove">이 메모 삭제</button>' +
+        '</div></div>';
+    }
+    return '<div class="memo" data-mid="' + esc(m.id) + '">' +
+      '<button type="button" class="open" data-act="mOpen">' +
+        '<span class="tx">' + esc(m.text) + '</span>' +
+        '<span class="ft"><span>' + esc(m.date) + '</span><em>눌러서 수정</em></span>' +
+      '</button></div>';
+  }).join('');
+}
+
+function render(){
+  $('when').textContent = today() + (store.updated ? ' · ' + store.updated + ' 저장' : '');
+  renderSummary();
+  renderItems();
+  renderRooms();
+  if (!$('scMemo').classList.contains('hidden')) { renderChips(); renderMemos(); }
+  refreshAddBtn();
+}
+
+function showScreen(which){
+  $('scMain').classList.toggle('hidden', which !== 'main');
+  $('scMemo').classList.toggle('hidden', which !== 'memo');
+  window.scrollTo(0, 0);
+  if (which === 'memo') { renderChips(); renderMemos(); $('newMemo').value = ''; refreshMemoBtn(); }
+}
+
+function refreshAddBtn(){ $('addBtn').disabled = $('newName').value.trim().length === 0; }
+function refreshMemoBtn(){ $('memoAdd').disabled = $('newMemo').value.trim().length === 0; }
+
+/* ═══════════ 누름 처리 ═══════════ */
+document.addEventListener('click', function(ev){
+  var btn = ev.target.closest('[data-act]');
+  if (!btn) return;
+  var act  = btn.getAttribute('data-act');
+  var card = btn.closest('[data-id]');
+  var id   = card ? card.getAttribute('data-id') : '';
+  var mc   = btn.closest('[data-mid]');
+  var mid  = mc ? mc.getAttribute('data-mid') : '';
+
+  if (act === 'dec')  { bump(id, -1); return; }
+  if (act === 'inc')  { bump(id,  1); return; }
+
+  if (act === 'openNum')  { ui.itemNum = id; ui.itemEdit = ''; renderItems();
+                            var nb = $('numBox'); if (nb) { nb.focus(); nb.select(); } return; }
+  if (act === 'numCancel'){ ui.itemNum = ''; renderItems(); return; }
+  if (act === 'numSave')  { setExact(id, Math.max(0, num($('numBox').value, 0)));
+                            ui.itemNum = ''; renderItems(); renderSummary(); return; }
+
+  if (act === 'openEdit') { ui.itemEdit = id; ui.itemNum = ''; renderItems(); return; }
+  if (act === 'edCancel') { ui.itemEdit = ''; renderItems(); return; }
+  if (act === 'edUnit')   { var u = btn.getAttribute('data-u');
+                            Array.prototype.forEach.call($('edUnits').children, function(b){
+                              b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+                            return; }
+  if (act === 'edSave')   {
+    var nm = $('edName').value.trim();
+    if (!nm) { showToast('품목 이름을 적어주세요'); return; }
+    var sel = $('edUnits').querySelector('[aria-pressed=true]');
+    editItem(id, nm, sel ? sel.getAttribute('data-u') : '개', Math.max(1, num($('edMin').value, 1)));
+    ui.itemEdit = ''; renderItems(); renderSummary(); return;
+  }
+  if (act === 'edRemove') { removeItem(id); ui.itemEdit = ''; renderItems(); renderSummary(); return; }
+
+  if (act === 'newUnit')  { ui.newUnit = btn.getAttribute('data-u');
+                            $('newUnits').innerHTML = unitChips(ui.newUnit, 'newUnit'); return; }
+
+  if (act === 'openRoom') { curRoom = btn.getAttribute('data-room'); ui.memoEdit = ''; showScreen('memo'); return; }
+  if (act === 'pickRoom') { curRoom = btn.getAttribute('data-room'); ui.memoEdit = '';
+                            $('newMemo').value = ''; refreshMemoBtn(); renderChips(); renderMemos(); return; }
+
+  if (act === 'mOpen')    { ui.memoEdit = mid; renderMemos(); return; }
+  if (act === 'mCancel')  { ui.memoEdit = ''; renderMemos(); return; }
+  if (act === 'mSave')    {
+    var tx = $('mEdit').value.trim();
+    if (!tx) { showToast('메모 내용을 적어주세요'); return; }
+    saveMemo(curRoom, mid, tx); ui.memoEdit = ''; renderMemos(); renderRooms(); return;
+  }
+  if (act === 'mRemove')  { removeMemo(curRoom, mid); ui.memoEdit = ''; renderMemos(); renderRooms(); return; }
+});
+
+$('newName').addEventListener('input', refreshAddBtn);
+$('newMemo').addEventListener('input', refreshMemoBtn);
+
+$('addBtn').addEventListener('click', function(){
+  var nm = $('newName').value.trim();
+  if (!nm) return;
+  addItem(nm, ui.newUnit, Math.max(1, num($('newMin').value, 1)));
+  $('newName').value = ''; $('newMin').value = '9';
+  ui.newUnit = '개'; $('newUnits').innerHTML = unitChips(ui.newUnit, 'newUnit');
+  refreshAddBtn(); renderItems(); renderSummary();
+});
+
+$('memoAdd').addEventListener('click', function(){
+  var tx = $('newMemo').value.trim();
+  if (!tx) return;
+  addMemo(curRoom, tx);
+  $('newMemo').value = ''; refreshMemoBtn();
+  renderChips(); renderMemos(); renderRooms();
+});
+
+$('goBack').addEventListener('click', function(){ showScreen('main'); render(); });
+
+$('reload').addEventListener('click', function(){
+  var b = $('reload');
+  if (b.classList.contains('spin')) return;
+  b.classList.add('spin');
+  flushSave();
+  Promise.all([loadRooms(), loadStore()]).then(function(){
+    ui.itemEdit = ''; ui.itemNum = ''; ui.memoEdit = '';
+    if (curRoom && rooms.length) {
+      var still = rooms.some(function(r){ return r.name === curRoom; });
+      if (!still) curRoom = rooms[0].name;
+    }
+    render();
+    if (!$('scMemo').classList.contains('hidden')) { renderChips(); renderMemos(); }
+    b.classList.remove('spin');
+  });
+});
+
+// 화면을 떠날 때 밀린 것을 마저 보낸다
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'hidden') flushSave();
+});
+window.addEventListener('pagehide', flushSave);
+
+/* ═══════════ 시작 ═══════════ */
+$('newUnits').innerHTML = unitChips(ui.newUnit, 'newUnit');
+render();
+Promise.all([loadRooms(), loadStore()]).then(function(){ render(); });
+</script>
+</body>
+</html>
