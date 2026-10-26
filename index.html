@@ -109,6 +109,23 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .room .pv{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .room .mt{display:block;margin-top:3px;font-size:11px;color:var(--faint)}
 .room svg{flex-shrink:0;width:17px;height:17px}
+/* 공통 메모 — 방과 상관없는 메모·필요한 것. 첫 화면 맨 위 */
+.cm{margin:4px 0 14px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:14px;overflow:hidden}
+.cm-hd{display:flex;align-items:baseline;gap:8px;padding:13px 15px 6px}
+.cm-hd b{font-size:10px;letter-spacing:.16em;font-weight:600;color:var(--amber)}
+.cm-hd i{font-style:normal;font-size:11px;color:var(--faint)}
+.cm-it{display:flex;align-items:baseline;gap:10px;width:100%;box-sizing:border-box;min-height:44px;padding:10px 15px;
+  background:none;border:0;border-top:1px solid var(--line);text-align:left;cursor:pointer}
+.cm-it .tx{flex-grow:1;min-width:0;font-size:15px;line-height:1.55;white-space:pre-line}
+.cm-it .dt{flex-shrink:0;font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums}
+.cm .panel{border-top:1px solid var(--line)}
+.cm-empty{padding:4px 15px 12px;font-size:12.5px;color:var(--muted)}
+.cm-add{display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid var(--line);background:var(--soft)}
+#cmNew{flex-grow:1;min-width:0;box-sizing:border-box;min-height:46px;padding:0 13px;background:var(--card);
+  border:1px dashed #cdc5b5;border-radius:11px;font-size:14.5px}
+#cmAdd{flex-shrink:0;width:64px;min-height:46px;border:0;border-radius:11px;font-size:14px;font-weight:600;
+  background:var(--ink);color:var(--bg);cursor:pointer}
+#cmAdd:disabled{background:#e6e1d6;color:#9a9286;cursor:default}
 .empty{padding:28px 16px;text-align:center;border:1px dashed #cdc5b5;border-radius:14px;font-size:13px;color:var(--muted)}
 
 /* 메모 화면 */
@@ -161,6 +178,15 @@ textarea{width:100%;box-sizing:border-box;resize:none;padding:11px 12px;backgrou
       <button type="button" class="iconbtn" id="reload" aria-label="다시 불러오기">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 3.5v5h-5"/></svg>
       </button>
+    </div>
+
+    <div class="cm">
+      <div class="cm-hd"><b>공통 메모 · 필요한 것</b><i id="cmCount"></i></div>
+      <div id="cmList"></div>
+      <div class="cm-add">
+        <input id="cmNew" type="text" placeholder="예) 드라이기 2개 더 사기" autocomplete="off" aria-label="공통 메모">
+        <button type="button" id="cmAdd" disabled>추가</button>
+      </div>
     </div>
 
     <div id="summary"></div>
@@ -217,6 +243,9 @@ var ROOMS_URL   = 'https://ical-proxy.vagabond1984.workers.dev/rooms';  // ⚠ �
 var LS_ROOMS    = 'hana_storage_rooms';
 var DEBOUNCE_MS = 2500;      // KV 는 같은 키에 1초 1회 제한. 줄이지 말 것
 var UNITS       = ['개','장','롤','통','병','켤레'];
+// 어느 방에도 속하지 않는 메모 — memos 안에서 호실과 나란히 이 키로 담긴다 (합치기 저장도 호실 메모와 같은 길).
+// 실제 호실명과 겹치지 않게 밑줄로 감싼다. 호실 목록·칩에는 안 나오고 첫 화면 맨 위 칸에만 보인다
+var COMMON      = '__common__';
 
 /* ═══════════ 상태 ═══════════ */
 var store   = { items: [], memos: {}, updated: '' };  // 화면에 그려지는 현재 내용
@@ -225,7 +254,7 @@ var pending = emptyPending();                          // 아직 서버에 못 �
 var lastGood = null;                                   // 저장 실패 시 되돌릴 기준
 var saveTimer = null;
 var curRoom = '';
-var ui = { itemEdit:'', itemNum:'', memoEdit:'', newUnit:'개' };
+var ui = { itemEdit:'', itemNum:'', memoEdit:'', cmEdit:'', newUnit:'개' };
 
 function emptyPending(){
   return { deltas:{}, absolutes:{}, edits:{}, addItems:[], removeItemIds:[], memoOps:[] };
@@ -376,7 +405,7 @@ function revert(msg){
   showToast(msg);
   pending = emptyPending();
   if (lastGood) store = clone(lastGood);
-  ui.itemEdit = ''; ui.itemNum = ''; ui.memoEdit = '';
+  ui.itemEdit = ''; ui.itemNum = ''; ui.memoEdit = ''; ui.cmEdit = '';
   render();
 }
 
@@ -646,6 +675,36 @@ function touchRow(id){
   renderSummary();
 }
 
+function renderCommon(){
+  var arr = store.memos[COMMON] || [];
+  // 저장이 끝나 다시 그릴 때 고치던 글이 날아가지 않게
+  var typing = $('cmEdit') ? $('cmEdit').value : null;
+  $('cmCount').textContent = arr.length ? arr.length + '개' : '';
+  if (!arr.length) {
+    $('cmList').innerHTML = '<div class="cm-empty">방과 상관없는 메모나 필요한 비품을 적어두세요</div>';
+    return;
+  }
+  $('cmList').innerHTML = arr.map(function(m){
+    if (ui.cmEdit === m.id) {
+      return '<div data-mid="' + esc(m.id) + '"><div class="panel">' +
+        '<label class="cap" for="cmEdit">공통 메모 수정 중</label>' +
+        '<textarea id="cmEdit" rows="3">' + esc(m.text) + '</textarea>' +
+        '<div class="pair">' +
+          '<button type="button" class="ghost" data-act="cCancel">취소</button>' +
+          '<button type="button" class="solid" data-act="cSave">저장</button>' +
+        '</div>' +
+        '<button type="button" class="danger" data-act="cRemove">이 메모 삭제</button>' +
+        '</div></div>';
+    }
+    return '<div data-mid="' + esc(m.id) + '">' +
+      '<button type="button" class="cm-it" data-act="cOpen">' +
+        '<span class="tx">' + esc(m.text) + '</span>' +
+        '<span class="dt">' + esc(m.date.slice(5, 10)) + '</span>' +
+      '</button></div>';
+  }).join('');
+  if (typing !== null && $('cmEdit')) $('cmEdit').value = typing;
+}
+
 function renderRooms(){
   var el = $('roomArea');
   if (!rooms.length) {
@@ -715,6 +774,7 @@ function renderMemos(){
 
 function render(){
   $('when').textContent = today() + (store.updated ? ' · ' + store.updated + ' 저장' : '');
+  renderCommon();
   renderSummary();
   renderItems();
   renderRooms();
@@ -781,7 +841,29 @@ document.addEventListener('click', function(ev){
     saveMemo(curRoom, mid, tx); ui.memoEdit = ''; renderMemos(); renderRooms(); return;
   }
   if (act === 'mRemove')  { removeMemo(curRoom, mid); ui.memoEdit = ''; renderMemos(); renderRooms(); return; }
+
+  if (act === 'cOpen')    { ui.cmEdit = mid; renderCommon(); return; }
+  if (act === 'cCancel')  { ui.cmEdit = ''; renderCommon(); return; }
+  if (act === 'cSave')    {
+    var ct = $('cmEdit').value.trim();
+    if (!ct) { showToast('메모 내용을 적어주세요'); return; }
+    saveMemo(COMMON, mid, ct); ui.cmEdit = ''; renderCommon(); return;
+  }
+  if (act === 'cRemove')  { removeMemo(COMMON, mid); ui.cmEdit = ''; renderCommon(); return; }
 });
+
+function refreshCmBtn(){ $('cmAdd').disabled = $('cmNew').value.trim().length === 0; }
+function addCommon(){
+  var tx = $('cmNew').value.trim();
+  if (!tx) return;
+  addMemo(COMMON, tx);
+  $('cmNew').value = ''; refreshCmBtn(); renderCommon();
+}
+$('cmNew').addEventListener('input', refreshCmBtn);
+$('cmNew').addEventListener('keydown', function(ev){
+  if (ev.key === 'Enter' && !ev.isComposing) { ev.preventDefault(); addCommon(); }
+});
+$('cmAdd').addEventListener('click', addCommon);
 
 $('newName').addEventListener('input', refreshAddBtn);
 $('newMemo').addEventListener('input', refreshMemoBtn);
@@ -811,7 +893,7 @@ $('reload').addEventListener('click', function(){
   b.classList.add('spin');
   flushSave();
   Promise.all([loadRooms(), loadStore()]).then(function(){
-    ui.itemEdit = ''; ui.itemNum = ''; ui.memoEdit = '';
+    ui.itemEdit = ''; ui.itemNum = ''; ui.memoEdit = ''; ui.cmEdit = '';
     if (curRoom && rooms.length) {
       var still = rooms.some(function(r){ return r.name === curRoom; });
       if (!still) curRoom = rooms[0].name;
